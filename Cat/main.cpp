@@ -4,7 +4,6 @@ using namespace sf;
 class Cat {
 public:
 
-
 private:
     int health;
 };
@@ -18,38 +17,36 @@ int main() {
     RectangleShape catTexture;
     catTexture.setFillColor(Color::White);
     catTexture.setPosition(100, 400);
-    catTexture.setSize(Vector2f(100, 50));
+    catTexture.setSize(Vector2f(100, 50)); // 세로 크기를 200 픽셀로 설정
 
     // 중력 설정
-    float gravity = 1.0f;
-    float jumpStrength = -15.0f;
+    float gravity = 600.0f; // 중력을 낮춤
+    float jumpStrength = -300.0f; // 점프력을 낮춤
     Vector2f velocity(0.0f, 0.0f);
 
     // 바닥 높이 설정
-    float groundHeight = 740.0f;
+    float groundHeight = 600.0f;
 
     // 이동 속도 설정
-    float moveSpeed = 10.0f;
+    float moveSpeed = 3000.0f; // 초당 이동 픽셀 수로 변경
 
     // W 키를 눌렀을 때 점프 중인지 여부를 나타내는 변수
     bool isJumping = false;
 
+    // 시간을 추적하기 위한 clock 객체 초기화
+    sf::Clock clock;
+
     // 게임 루프
     while (window.isOpen()) {
+        sf::Time deltaTime = clock.restart();
+        float dt = deltaTime.asSeconds();
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
             if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::A) {
-                    // 왼쪽으로 이동
-                    catTexture.move(-moveSpeed, 0);
-                }
-                if (event.key.code == sf::Keyboard::D) {
-                    // 오른쪽으로 이동
-                    catTexture.move(moveSpeed, 0);
-                }
                 if (event.key.code == sf::Keyboard::Space && catTexture.getPosition().y >= groundHeight) {
                     // 점프
                     velocity.y = jumpStrength;
@@ -58,6 +55,14 @@ int main() {
                     // W 키를 누르면 점프 시작
                     velocity.y = jumpStrength;
                     isJumping = true;
+                }
+                if (event.key.code == sf::Keyboard::A) {
+                    // A 키를 누르면 왼쪽으로 이동
+                    catTexture.move(-moveSpeed * dt, 0);
+                }
+                if (event.key.code == sf::Keyboard::D) {
+                    // D 키를 누르면 오른쪽으로 이동
+                    catTexture.move(moveSpeed * dt, 0);
                 }
             }
             if (event.type == sf::Event::KeyReleased) {
@@ -69,12 +74,16 @@ int main() {
         }
 
         // 중력 적용
-        velocity.y += gravity;
-        catTexture.move(0.0f, velocity.y);
+        velocity.y += gravity * dt;
 
+        // 이동을 적용하기 위해 속도를 위치에 더함
+        catTexture.move(velocity * dt);
+
+        // 바닥과의 충돌 처리
         if (catTexture.getPosition().y >= groundHeight) {
             catTexture.setPosition(catTexture.getPosition().x, groundHeight);
             velocity.y = 0.0f;
+            isJumping = false; // 바닥에 닿으면 점프 중지
         }
 
         // 화면 지우기
