@@ -20,18 +20,21 @@ int main() {
     catTexture.setSize(Vector2f(100, 50)); // 세로 크기를 200 픽셀로 설정
 
     // 중력 설정
-    float gravity = 600.0f; // 중력을 낮춤
-    float jumpStrength = -300.0f; // 점프력을 낮춤
+    float gravity = 1000.0f; // 중력을 크게 설정
+    float jumpStrength = -500.0f; // 점프력을 크게 설정
     Vector2f velocity(0.0f, 0.0f);
 
     // 바닥 높이 설정
     float groundHeight = 600.0f;
 
     // 이동 속도 설정
-    float moveSpeed = 3000.0f; // 초당 이동 픽셀 수로 변경
+    float moveSpeed = 300.0f; // 초당 이동 픽셀 수로 변경
 
     // W 키를 눌렀을 때 점프 중인지 여부를 나타내는 변수
     bool isJumping = false;
+
+    // 이동 방향을 나타내는 변수
+    int moveDirection = 0; // 0: 정지, -1: 왼쪽, 1: 오른쪽
 
     // 시간을 추적하기 위한 clock 객체 초기화
     sf::Clock clock;
@@ -58,11 +61,11 @@ int main() {
                 }
                 if (event.key.code == sf::Keyboard::A) {
                     // A 키를 누르면 왼쪽으로 이동
-                    catTexture.move(-moveSpeed * dt, 0);
+                    moveDirection = -1;
                 }
                 if (event.key.code == sf::Keyboard::D) {
                     // D 키를 누르면 오른쪽으로 이동
-                    catTexture.move(moveSpeed * dt, 0);
+                    moveDirection = 1;
                 }
             }
             if (event.type == sf::Event::KeyReleased) {
@@ -70,14 +73,21 @@ int main() {
                     // W 키를 놓으면 점프 중지
                     isJumping = false;
                 }
+                if (event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::D) {
+                    // A 또는 D 키를 놓으면 이동 정지
+                    moveDirection = 0;
+                }
             }
         }
 
         // 중력 적용
         velocity.y += gravity * dt;
 
+        // 이동 적용
+        catTexture.move(moveSpeed * moveDirection * dt, 0);
+
         // 이동을 적용하기 위해 속도를 위치에 더함
-        catTexture.move(velocity * dt);
+        catTexture.move(0, velocity.y * dt);
 
         // 바닥과의 충돌 처리
         if (catTexture.getPosition().y >= groundHeight) {
